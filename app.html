@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InstaX – Downloader Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#c0392b;--red2:#e74c3c;--red3:#ff6b6b;
+  --glass:rgba(180,20,20,0.08);--glass2:rgba(200,30,30,0.13);
+  --glow:rgba(231,76,60,0.35);
+  --bg:#0a0404;--bg2:#0f0505;
+  --text:#f5e6e6;--text2:#c9a9a9;--text3:#8a5a5a;
+  --border:rgba(200,60,60,0.18);--border2:rgba(255,100,100,0.28);
+  --font-display:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;
+  --ease:cubic-bezier(0.23,1,0.32,1);--ease2:cubic-bezier(0.16,1,0.3,1);
+}
+html{font-size:16px}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);overflow-x:hidden;min-height:100vh;line-height:1.6}
+
+/* NOISE */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.6}
+
+/* AMBIENT */
+.ambient{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.amb-orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:0.1;animation:orbFloat 14s ease-in-out infinite alternate}
+.amb-orb:nth-child(1){width:700px;height:700px;background:radial-gradient(circle,#c0392b,transparent);top:-200px;left:-150px}
+.amb-orb:nth-child(2){width:500px;height:500px;background:radial-gradient(circle,#7b0d0d,transparent);bottom:-100px;right:-100px;animation-delay:-6s}
+.amb-orb:nth-child(3){width:300px;height:300px;background:radial-gradient(circle,#e74c3c,transparent);top:40%;right:10%;animation-delay:-3s}
+@keyframes orbFloat{0%{transform:scale(1)}100%{transform:scale(1.2) translate(15px,-15px)}}
+
+/* MOVING GRADIENT BG */
+.bg-gradient{position:fixed;inset:0;z-index:0;background:linear-gradient(135deg,#0a0404 0%,#0f0505 30%,#130606 60%,#0a0404 100%);background-size:400% 400%;animation:bgShift 20s ease infinite}
+@keyframes bgShift{0%,100%{background-position:0% 0%}50%{background-position:100% 100%}}
+
+/* NAVBAR */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 28px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background:rgba(10,4,4,0.75);border-bottom:1px solid var(--border)}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-logo-text{font-family:var(--font-display);font-size:1.3rem;font-weight:800;background:linear-gradient(135deg,#ff6b6b,#c0392b,#ff6b6b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.02em}
+.nav-logo svg{width:30px;height:30px;flex-shrink:0}
+.menu-btn{width:44px;height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;background:rgba(192,57,43,0.1);border:1px solid var(--border);border-radius:12px;transition:all 0.3s var(--ease);flex-shrink:0;padding:0}
+.menu-btn:hover{background:rgba(192,57,43,0.2);border-color:var(--border2);box-shadow:0 0 20px rgba(192,57,43,0.2)}
+.menu-dot{width:4px;height:4px;border-radius:50%;background:var(--red3);transition:transform 0.3s var(--ease)}
+.menu-btn:hover .menu-dot{transform:scale(1.3)}
+
+/* MAIN */
+main{position:relative;z-index:1;padding-top:60px;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+
+/* PAGE HEADER */
+.page-header{text-align:center;padding:40px 24px 28px;width:100%;max-width:700px;margin:0 auto}
+.page-title{font-family:var(--font-display);font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;letter-spacing:-0.04em;line-height:1.1;background:linear-gradient(135deg,#fff 0%,#ffb3b3 50%,#c0392b 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;opacity:0;transform:translateY(24px);animation:fadeUp 0.9s var(--ease) 0.2s forwards}
+.page-sub{font-size:0.9rem;color:var(--text2);margin-top:8px;opacity:0;transform:translateY(16px);animation:fadeUp 0.9s var(--ease) 0.4s forwards}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+
+/* TOOL CONTAINER */
+.tool-wrap{width:100%;max-width:760px;padding:0 20px 40px;margin:0 auto}
+
+.tool-panel{background:linear-gradient(145deg,rgba(192,57,43,0.1),rgba(140,15,15,0.07),rgba(192,57,43,0.08));border:1px solid var(--border2);border-radius:24px;padding:32px;position:relative;overflow:hidden;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 0 60px rgba(192,57,43,0.08),0 20px 60px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,150,150,0.1);opacity:0;transform:translateY(32px) scale(0.97);animation:fadeUp 1s var(--ease) 0.5s forwards}
+
+/* Animated glow border */
+.tool-panel::before{content:'';position:absolute;inset:-1px;border-radius:25px;background:conic-gradient(from var(--angle,0deg),transparent 70%,rgba(231,76,60,0.4) 80%,transparent 90%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;padding:1px;animation:rotateBorder 4s linear infinite;pointer-events:none}
+@property --angle{syntax:'<angle>';initial-value:0deg;inherits:false}
+@keyframes rotateBorder{to{--angle:360deg}}
+
+/* shimmer */
+.tool-panel::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,150,150,0.04),transparent);animation:shimmer 6s ease-in-out infinite;pointer-events:none}
+@keyframes shimmer{0%,100%{left:-100%}50%{left:200%}}
+
+.panel-inner{position:relative;z-index:1}
+
+/* INPUT ROW */
+.input-row{display:flex;gap:12px;align-items:stretch;margin-bottom:24px}
+.url-input{flex:1;background:rgba(255,255,255,0.04);border:1.5px solid var(--border);border-radius:14px;padding:14px 18px;color:var(--text);font-family:var(--font-body);font-size:0.95rem;outline:none;transition:border-color 0.3s var(--ease),box-shadow 0.3s var(--ease),background 0.3s;min-width:0}
+.url-input::placeholder{color:var(--text3)}
+.url-input:focus{border-color:var(--red2);box-shadow:0 0 0 3px rgba(192,57,43,0.15),0 0 20px rgba(192,57,43,0.1);background:rgba(255,255,255,0.06)}
+.fetch-btn{flex-shrink:0;padding:14px 28px;background:linear-gradient(135deg,#c0392b,#e74c3c,#c0392b);background-size:200% 200%;border:none;border-radius:14px;color:#fff;font-family:var(--font-display);font-size:0.95rem;font-weight:700;cursor:pointer;position:relative;overflow:hidden;box-shadow:0 0 24px rgba(192,57,43,0.35),0 4px 16px rgba(0,0,0,0.3);transition:box-shadow 0.3s var(--ease),transform 0.3s var(--ease);animation:gradShift 3s ease infinite;white-space:nowrap}
+.fetch-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(255,255,255,0.12),transparent);transform:translateX(-100%);transition:transform 0.4s var(--ease)}
+.fetch-btn:hover::before{transform:translateX(100%)}
+.fetch-btn:hover{box-shadow:0 0 40px rgba(231,76,60,0.5),0 8px 24px rgba(0,0,0,0.4);transform:translateY(-2px)}
+.fetch-btn:active{transform:translateY(1px) scale(0.98)}
+@keyframes gradShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+/* LOADER */
+.loader{display:none;align-items:center;justify-content:center;gap:12px;padding:24px 0;flex-direction:column}
+.loader.show{display:flex}
+.spinner{width:44px;height:44px;border-radius:50%;background:conic-gradient(from 0deg,#c0392b,#e74c3c,#ff6b6b,transparent);animation:spin 0.8s linear infinite;position:relative}
+.spinner::after{content:'';position:absolute;inset:4px;border-radius:50%;background:var(--bg2)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-text{font-size:0.85rem;color:var(--text2);letter-spacing:0.05em}
+
+/* ERROR */
+.error-box{display:none;align-items:center;gap:12px;background:rgba(192,57,43,0.12);border:1px solid rgba(231,76,60,0.35);border-radius:14px;padding:14px 18px;margin-bottom:16px;animation:slideDown 0.4s var(--ease)}
+.error-box.show{display:flex}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.error-icon{flex-shrink:0;color:var(--red3)}
+.error-msg{font-size:0.88rem;color:#ff9999;line-height:1.4}
+
+/* RESULT */
+.result-section{display:none;flex-direction:column;gap:16px}
+.result-section.show{display:flex}
+
+.result-label{font-family:var(--font-display);font-size:0.75rem;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3);margin-bottom:4px}
+
+.media-wrap{background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:16px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;min-height:180px}
+.media-wrap video,.media-wrap img{width:100%;height:auto;max-height:500px;object-fit:contain;display:block}
+
+.result-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.result-meta{font-size:0.82rem;color:var(--text3)}
+.dl-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:linear-gradient(135deg,#c0392b,#e74c3c);border:none;border-radius:12px;color:#fff;font-family:var(--font-display);font-size:0.9rem;font-weight:700;cursor:pointer;text-decoration:none;box-shadow:0 0 20px rgba(192,57,43,0.3);transition:all 0.3s var(--ease);white-space:nowrap}
+.dl-btn:hover{box-shadow:0 0 36px rgba(231,76,60,0.5);transform:translateY(-2px)}
+.dl-btn:active{transform:translateY(1px)}
+.dl-btn svg{transition:transform 0.3s var(--ease)}
+.dl-btn:hover svg{transform:translateY(2px)}
+
+/* DIVIDER */
+.panel-divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:24px 0}
+
+/* TIPS */
+.tips-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.tip{background:rgba(255,255,255,0.03);border:1px solid rgba(192,57,43,0.1);border-radius:14px;padding:16px;transition:border-color 0.3s,background 0.3s}
+.tip:hover{border-color:var(--border);background:rgba(255,255,255,0.05)}
+.tip-icon{margin-bottom:8px;opacity:0.7}
+.tip-title{font-family:var(--font-display);font-size:0.8rem;font-weight:700;color:var(--text);margin-bottom:4px;letter-spacing:-0.01em}
+.tip-text{font-size:0.75rem;color:var(--text3);line-height:1.5}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:rgba(5,0,0,0.75);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);opacity:0;pointer-events:none;transition:opacity 0.35s var(--ease)}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:linear-gradient(145deg,rgba(192,57,43,0.14),rgba(140,15,15,0.1),rgba(192,57,43,0.1));border:1px solid var(--border2);border-radius:24px;padding:36px 32px;max-width:420px;width:90%;position:relative;transform:scale(0.88) translateY(20px);transition:transform 0.4s var(--ease);box-shadow:0 40px 80px rgba(0,0,0,0.6),0 0 60px rgba(192,57,43,0.1),inset 0 1px 0 rgba(255,150,150,0.1)}
+.modal-overlay.open .modal{transform:scale(1) translateY(0)}
+.modal-close{position:absolute;top:16px;right:16px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(192,57,43,0.12);border:1px solid var(--border);border-radius:10px;color:var(--text2);transition:all 0.3s var(--ease);font-size:1.1rem;line-height:1}
+.modal-close:hover{background:rgba(192,57,43,0.25);border-color:var(--border2);color:var(--text)}
+.modal-title{font-family:var(--font-display);font-size:1.4rem;font-weight:800;letter-spacing:-0.03em;color:var(--text);margin-bottom:6px}
+.modal-sub{font-size:0.83rem;color:var(--text3);margin-bottom:28px}
+.dev-links{display:flex;flex-direction:column;gap:10px}
+.dev-link{display:flex;align-items:center;gap:14px;padding:14px 18px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:14px;text-decoration:none;color:var(--text);transition:all 0.3s var(--ease);position:relative;overflow:hidden}
+.dev-link::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(192,57,43,0.08),transparent);opacity:0;transition:opacity 0.3s}
+.dev-link:hover{border-color:var(--border2);transform:translateX(4px);box-shadow:0 0 20px rgba(192,57,43,0.1)}
+.dev-link:hover::before{opacity:1}
+.dev-link-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:filter 0.3s}
+.dev-link:hover .dev-link-icon{filter:drop-shadow(0 0 8px rgba(255,107,107,0.5))}
+.dev-link-info{}
+.dev-link-name{font-family:var(--font-display);font-size:0.9rem;font-weight:700;color:var(--text);letter-spacing:-0.01em}
+.dev-link-handle{font-size:0.78rem;color:var(--text3)}
+.dev-link-arrow{margin-left:auto;color:var(--text3);flex-shrink:0;transition:transform 0.3s var(--ease)}
+.dev-link:hover .dev-link-arrow{transform:translateX(4px);color:var(--red3)}
+
+@media(max-width:600px){
+  .input-row{gap:8px}
+  .url-input{padding:12px 14px;font-size:0.88rem}
+  .fetch-btn{padding:12px 18px;font-size:0.85rem}
+  .tool-panel{padding:20px 16px}
+  .tips-grid{grid-template-columns:repeat(3,1fr);gap:8px}
+  .tip{padding:12px 10px}
+  .page-header{padding:28px 20px 20px}
+}
+</style>
+</head>
+<body>
+<div class="bg-gradient"></div>
+<div class="ambient">
+  <div class="amb-orb"></div>
+  <div class="amb-orb"></div>
+  <div class="amb-orb"></div>
+</div>
+
+<!-- NAVBAR -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    <svg viewBox="0 0 32 32" fill="none">
+      <rect width="32" height="32" rx="9" fill="url(#nlg)"/>
+      <circle cx="16" cy="16" r="6" stroke="white" stroke-width="2.2" fill="none"/>
+      <circle cx="22.5" cy="9.5" r="1.5" fill="white"/>
+      <defs><linearGradient id="nlg" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#c0392b"/><stop offset="1" stop-color="#7b0d0d"/></linearGradient></defs>
+    </svg>
+    <span class="nav-logo-text">InstaX</span>
+  </a>
+  <button class="menu-btn" id="menuBtn" aria-label="Developer Menu" title="Meet Developer">
+    <div class="menu-dot"></div>
+    <div class="menu-dot"></div>
+    <div class="menu-dot"></div>
+  </button>
+</nav>
+
+<main>
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <h1 class="page-title" id="pageTitle">Instagram Downloader</h1>
+    <p class="page-sub">Paste any Instagram reel, post, or story link below</p>
+  </div>
+
+  <!-- TOOL WRAP -->
+  <div class="tool-wrap">
+    <div class="tool-panel">
+      <div class="panel-inner">
+
+        <!-- ERROR -->
+        <div class="error-box" id="errorBox">
+          <div class="error-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <div class="error-msg" id="errorMsg">Something went wrong.</div>
+        </div>
+
+        <!-- INPUT ROW -->
+        <div class="input-row">
+          <input type="url" class="url-input" id="urlInput" placeholder="https://www.instagram.com/reel/..." autocomplete="off" spellcheck="false">
+          <button class="fetch-btn" id="fetchBtn">
+            <span id="fetchBtnText">Fetch</span>
+          </button>
+        </div>
+
+        <!-- LOADER -->
+        <div class="loader" id="loader">
+          <div class="spinner"></div>
+          <div class="loader-text">Fetching media...</div>
+        </div>
+
+        <!-- RESULT -->
+        <div class="result-section" id="resultSection">
+          <div class="result-label">Preview</div>
+          <div class="media-wrap" id="mediaWrap"></div>
+          <div class="result-actions">
+            <div class="result-meta" id="resultMeta"></div>
+            <a class="dl-btn" id="dlBtn" href="#" download>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download
+            </a>
+          </div>
+        </div>
+
+        <div class="panel-divider"></div>
+
+        <!-- TIPS -->
+        <div class="tips-grid">
+          <div class="tip">
+            <div class="tip-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+            </div>
+            <div class="tip-title">Any Link</div>
+            <div class="tip-text">Reels, posts, stories — all supported</div>
+          </div>
+          <div class="tip">
+            <div class="tip-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            </div>
+            <div class="tip-title">HD Quality</div>
+            <div class="tip-text">Original resolution, never compressed</div>
+          </div>
+          <div class="tip">
+            <div class="tip-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div class="tip-title">Private & Safe</div>
+            <div class="tip-text">No data stored, ever</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- DEVELOPER MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-close" id="modalClose">&#x2715;</div>
+    <div class="modal-title">Meet Developer</div>
+    <div class="modal-sub">Built with passion by a solo creator</div>
+    <div class="dev-links">
+      <!-- Telegram -->
+      <a href="https://t.me/sahebxz" target="_blank" rel="noopener" class="dev-link">
+        <div class="dev-link-icon" style="background:rgba(0,136,204,0.15);border:1px solid rgba(0,136,204,0.25)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M21.93 3.48L2.46 11.09c-1.32.53-1.31 1.26-.24 1.58l4.88 1.52 11.3-7.13c.53-.34 1.02-.16.62.21l-9.15 8.26-.36 5.06c.53 0 .76-.24 1.05-.52l2.52-2.44 5.24 3.87c.96.53 1.66.26 1.9-.9l3.43-16.2c.34-1.38-.52-2.01-1.77-1.42z" fill="#0088cc"/>
+          </svg>
+        </div>
+        <div class="dev-link-info">
+          <div class="dev-link-name">Telegram</div>
+          <div class="dev-link-handle">@sahebxz</div>
+        </div>
+        <div class="dev-link-arrow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+      <!-- YouTube -->
+      <a href="https://youtube.com/@webmansaheb?si=Tj6G0hLfAazwqkHo" target="_blank" rel="noopener" class="dev-link">
+        <div class="dev-link-icon" style="background:rgba(255,0,0,0.12);border:1px solid rgba(255,0,0,0.2)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M22.54 6.42a2.78 2.78 0 00-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 00-1.95 1.96A29.94 29.94 0 001 12a29.94 29.94 0 00.46 5.58 2.78 2.78 0 001.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 001.95-1.96A29.94 29.94 0 0023 12a29.94 29.94 0 00-.46-5.58z" fill="#FF0000"/>
+            <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="white"/>
+          </svg>
+        </div>
+        <div class="dev-link-info">
+          <div class="dev-link-name">YouTube</div>
+          <div class="dev-link-handle">@webmansaheb</div>
+        </div>
+        <div class="dev-link-arrow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+      <!-- Instagram -->
+      <a href="https://www.instagram.com/_sahebx_?igsh=MXQ0MTMzd2VoeTg0bg==" target="_blank" rel="noopener" class="dev-link">
+        <div class="dev-link-icon" style="background:rgba(193,53,132,0.12);border:1px solid rgba(193,53,132,0.2)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <defs><radialGradient id="ig" cx="30%" cy="107%" r="150%"><stop offset="0%" stop-color="#fdf497"/><stop offset="5%" stop-color="#fdf497"/><stop offset="45%" stop-color="#fd5949"/><stop offset="60%" stop-color="#d6249f"/><stop offset="90%" stop-color="#285AEB"/></radialGradient></defs>
+            <rect x="2" y="2" width="20" height="20" rx="5" fill="url(#ig)"/>
+            <circle cx="12" cy="12" r="4.5" stroke="white" stroke-width="1.8" fill="none"/>
+            <circle cx="17.5" cy="6.5" r="1.2" fill="white"/>
+          </svg>
+        </div>
+        <div class="dev-link-info">
+          <div class="dev-link-name">Instagram</div>
+          <div class="dev-link-handle">@_sahebx_</div>
+        </div>
+        <div class="dev-link-arrow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- TITLE ANIMATION ----
+function animateTitle(){
+  const el = document.getElementById('pageTitle');
+  const words = ['Instagram','Downloader'];
+  el.innerHTML = '';
+  words.forEach((w,wi)=>{
+    const span = document.createElement('span');
+    span.style.cssText='display:inline-block;overflow:hidden;vertical-align:top';
+    const inner = document.createElement('span');
+    inner.style.cssText=`display:inline-block;transform:translateY(110%);transition:transform 0.7s cubic-bezier(0.16,1,0.3,1);transition-delay:${0.2+wi*0.12}s`;
+    inner.textContent=w;
+    span.appendChild(inner);
+    if(wi<words.length-1){const s=document.createTextNode(' ');el.appendChild(s)}
+    el.appendChild(span);
+    setTimeout(()=>{inner.style.transform='translateY(0)'},50);
+  });
+}
+animateTitle();
+
+// ---- MODAL ----
+const overlay=document.getElementById('modalOverlay');
+const menuBtn=document.getElementById('menuBtn');
+const modalClose=document.getElementById('modalClose');
+menuBtn.addEventListener('click',()=>overlay.classList.add('open'));
+modalClose.addEventListener('click',()=>overlay.classList.remove('open'));
+overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.classList.remove('open')});
+
+// ---- FETCH ----
+const urlInput=document.getElementById('urlInput');
+const fetchBtn=document.getElementById('fetchBtn');
+const fetchBtnText=document.getElementById('fetchBtnText');
+const loader=document.getElementById('loader');
+const errorBox=document.getElementById('errorBox');
+const errorMsg=document.getElementById('errorMsg');
+const resultSection=document.getElementById('resultSection');
+const mediaWrap=document.getElementById('mediaWrap');
+const dlBtn=document.getElementById('dlBtn');
+const resultMeta=document.getElementById('resultMeta');
+
+let currentMediaUrl='';
+
+function showError(msg){
+  errorBox.classList.add('show');
+  errorMsg.textContent=msg;
+  resultSection.classList.remove('show');
+  loader.classList.remove('show');
+  fetchBtn.disabled=false;
+  fetchBtnText.textContent='Fetch';
+}
+
+function hideError(){
+  errorBox.classList.remove('show');
+}
+
+function showLoader(){
+  loader.classList.add('show');
+  resultSection.classList.remove('show');
+  hideError();
+  fetchBtn.disabled=true;
+  fetchBtnText.textContent='Fetching...';
+}
+
+function hideLoader(){
+  loader.classList.remove('show');
+  fetchBtn.disabled=false;
+  fetchBtnText.textContent='Fetch';
+}
+
+function extractMediaUrl(data){
+  if(!data)return null;
+  const checks=[
+    ()=>data.url,
+    ()=>data.video_url,
+    ()=>data.media,
+    ()=>data.download_url,
+    ()=>data.data&&data.data.url,
+    ()=>data.data&&data.data.video_url,
+    ()=>data.data&&Array.isArray(data.data)&&data.data[0]&&data.data[0].url,
+    ()=>data.data&&Array.isArray(data.data)&&data.data[0]&&data.data[0].video_url,
+    ()=>data.urls&&data.urls[0],
+    ()=>data.result&&data.result.url,
+    ()=>data.result&&data.result.video_url,
+    ()=>data.medias&&data.medias[0]&&data.medias[0].url,
+    ()=>data.items&&data.items[0]&&data.items[0].video_url,
+    ()=>data.items&&data.items[0]&&data.items[0].image_url,
+  ];
+  for(const fn of checks){
+    try{const v=fn();if(v&&typeof v==='string'&&v.startsWith('http'))return v;}catch(e){}
+  }
+  // deep search for any URL in response
+  const str=JSON.stringify(data);
+  const match=str.match(/https?:\/\/[^"]+\.(mp4|jpg|jpeg|png|webp|gif)[^"]*/i);
+  if(match)return match[0].replace(/\\u0026/g,'&');
+  return null;
+}
+
+function extractThumb(data){
+  const checks=[
+    ()=>data.thumbnail,
+    ()=>data.thumbnail_url,
+    ()=>data.thumb,
+    ()=>data.data&&data.data.thumbnail,
+    ()=>data.data&&Array.isArray(data.data)&&data.data[0]&&data.data[0].thumbnail,
+    ()=>data.result&&data.result.thumbnail,
+  ];
+  for(const fn of checks){
+    try{const v=fn();if(v&&typeof v==='string'&&v.startsWith('http'))return v;}catch(e){}
+  }
+  return null;
+}
+
+function isVideo(url,data){
+  if(!url)return false;
+  if(/\.mp4|\.mov|\.webm/i.test(url))return true;
+  if(data&&(data.type==='video'||data.media_type==='video'))return true;
+  if(data&&data.data&&(data.data.type==='video'||data.data.media_type==='video'))return true;
+  return false;
+}
+
+function renderMedia(mediaUrl,thumb,isVid){
+  mediaWrap.innerHTML='';
+  if(isVid){
+    const v=document.createElement('video');
+    v.controls=true;
+    v.src=mediaUrl;
+    if(thumb)v.poster=thumb;
+    v.style.cssText='width:100%;height:auto;max-height:500px;object-fit:contain;display:block;border-radius:0';
+    v.preload='metadata';
+    mediaWrap.appendChild(v);
+    resultMeta.textContent='Video detected — preview above';
+  } else {
+    const img=document.createElement('img');
+    img.src=mediaUrl;
+    img.alt='Downloaded media';
+    img.style.cssText='width:100%;height:auto;max-height:500px;object-fit:contain;display:block';
+    img.loading='lazy';
+    img.onerror=()=>{
+      mediaWrap.innerHTML='<div style="padding:24px;text-align:center;color:var(--text3);font-size:0.85rem">Preview not available. Download anyway.</div>';
+    };
+    mediaWrap.appendChild(img);
+    resultMeta.textContent='Image detected — preview above';
+  }
+}
+
+async function tryBlobDownload(url,filename){
+  try{
+    const res=await fetch(url,{mode:'cors'});
+    if(!res.ok)throw new Error('fetch failed');
+    const blob=await res.blob();
+    const bUrl=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=bUrl;
+    a.download=filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(bUrl),5000);
+    return true;
+  }catch{return false;}
+}
+
+dlBtn.addEventListener('click',async e=>{
+  e.preventDefault();
+  if(!currentMediaUrl)return;
+  const ts=Date.now();
+  const ext=currentMediaUrl.match(/\.(mp4|mov|jpg|jpeg|png|webp|gif)/i);
+  const filename=`InstaX_${ts}${ext?ext[0]:'.mp4'}`;
+  const ok=await tryBlobDownload(currentMediaUrl,filename);
+  if(!ok){
+    // fallback
+    const a=document.createElement('a');
+    a.href=currentMediaUrl;
+    a.download=filename;
+    a.target='_self';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+});
+
+async function doFetch(){
+  const raw=urlInput.value.trim();
+  if(!raw){showError('Please enter an Instagram URL.');return;}
+  if(!raw.includes('instagram.com')&&!raw.includes('instagr.am')){
+    showError('That doesn\'t look like an Instagram link. Please check the URL.');return;
+  }
+  hideError();
+  showLoader();
+  currentMediaUrl='';
+  mediaWrap.innerHTML='';
+  resultSection.classList.remove('show');
+
+  const apiUrl=`https://mixy-ox-enjoy.vercel.app/?url=${encodeURIComponent(raw)}`;
+  let data=null;
+  try{
+    const res=await fetch(apiUrl,{signal:AbortSignal.timeout(20000)});
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    data=await res.json();
+  }catch(err){
+    showError('Failed to reach the server. Check your connection and try again.');
+    return;
+  }
+
+  hideLoader();
+
+  const mediaUrl=extractMediaUrl(data);
+  if(!mediaUrl){
+    showError('No downloadable media found. Make sure the post is public.');
+    return;
+  }
+
+  currentMediaUrl=mediaUrl;
+  const thumb=extractThumb(data);
+  const vid=isVideo(mediaUrl,data);
+  renderMedia(mediaUrl,thumb,vid);
+  dlBtn.href=mediaUrl;
+  resultSection.classList.add('show');
+}
+
+fetchBtn.addEventListener('click',doFetch);
+urlInput.addEventListener('keydown',e=>{if(e.key==='Enter')doFetch()});
+urlInput.addEventListener('input',()=>{if(urlInput.value)hideError()});
+
+// MAGNETIC FETCH BTN
+fetchBtn.addEventListener('mousemove',e=>{
+  const r=fetchBtn.getBoundingClientRect();
+  const x=e.clientX-r.left-r.width/2;
+  const y=e.clientY-r.top-r.height/2;
+  fetchBtn.style.transform=`translateY(-2px) translate(${x*0.1}px,${y*0.1}px)`;
+});
+fetchBtn.addEventListener('mouseleave',()=>{fetchBtn.style.transform='';});
+</script>
+</body>
+</html>

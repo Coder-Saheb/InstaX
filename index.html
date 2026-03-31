@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InstaX – Developer Somagam ,InstaX </title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#c0392b;--red2:#e74c3c;--red3:#ff6b6b;
+  --glass:rgba(180,20,20,0.08);--glass2:rgba(200,30,30,0.13);
+  --glow:rgba(231,76,60,0.35);--glow2:rgba(255,107,107,0.18);
+  --bg:#0a0404;--bg2:#0f0505;--bg3:#130606;
+  --text:#f5e6e6;--text2:#c9a9a9;--text3:#8a5a5a;
+  --border:rgba(200,60,60,0.18);--border2:rgba(255,100,100,0.28);
+  --font-display:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;
+  --ease:cubic-bezier(0.23,1,0.32,1);--ease2:cubic-bezier(0.16,1,0.3,1);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);overflow-x:hidden;line-height:1.6;min-height:100vh}
+
+/* NOISE TEXTURE OVERLAY */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.6}
+
+/* AMBIENT BG */
+.ambient{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.amb-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.12;animation:orbFloat 12s ease-in-out infinite alternate}
+.amb-orb:nth-child(1){width:600px;height:600px;background:radial-gradient(circle,#c0392b,transparent);top:-100px;left:-100px;animation-delay:0s}
+.amb-orb:nth-child(2){width:500px;height:500px;background:radial-gradient(circle,#7b0d0d,transparent);bottom:-80px;right:-80px;animation-delay:-4s}
+.amb-orb:nth-child(3){width:350px;height:350px;background:radial-gradient(circle,#e74c3c,transparent);top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:-8s}
+@keyframes orbFloat{0%{transform:scale(1) translate(0,0)}100%{transform:scale(1.15) translate(20px,-20px)}}
+
+/* NAVBAR */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:center;height:60px;padding:0 32px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background:rgba(10,4,4,0.7);border-bottom:1px solid var(--border)}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-logo-icon{width:32px;height:32px;display:flex;align-items:center;justify-content:center}
+.nav-logo-text{font-family:var(--font-display);font-size:1.3rem;font-weight:800;background:linear-gradient(135deg,#ff6b6b,#c0392b,#ff6b6b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.02em}
+
+/* MAIN CONTENT */
+main{position:relative;z-index:1;padding-top:60px}
+
+/* HERO */
+.hero{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:48px;min-height:calc(100vh - 60px);padding:48px 64px;max-width:1400px;margin:0 auto}
+.hero-left{display:flex;flex-direction:column;gap:20px}
+.hero-label{display:inline-flex;align-items:center;gap:8px;font-size:0.7rem;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--red3);border:1px solid rgba(255,107,107,0.25);border-radius:40px;padding:6px 16px;width:fit-content;background:rgba(255,107,107,0.06);opacity:0;transform:translateY(20px);animation:fadeUp 0.8s var(--ease) 0.2s forwards}
+.hero-label::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--red3);animation:pulse 2s ease infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,107,107,0.6)}50%{box-shadow:0 0 0 6px rgba(255,107,107,0)}}
+
+.hero-brand{font-family:var(--font-display);font-size:clamp(3.5rem,7vw,6.5rem);font-weight:800;line-height:0.95;letter-spacing:-0.04em;opacity:0;transform:translateY(30px);animation:fadeUp 1s var(--ease) 0.4s forwards}
+.hero-brand span{display:block}
+.brand-insta{color:var(--text2);font-size:0.55em}
+.brand-x{background:linear-gradient(135deg,#ff6b6b 0%,#c0392b 40%,#ff3333 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 30px rgba(192,57,43,0.5));position:relative}
+.brand-x::after{content:'';position:absolute;inset:0;background:inherit;filter:blur(20px);opacity:0.3;-webkit-background-clip:text;background-clip:text;z-index:-1}
+
+.hero-headline{font-family:var(--font-display);font-size:clamp(1.1rem,2.2vw,1.5rem);font-weight:600;color:var(--text);line-height:1.3;letter-spacing:-0.02em;opacity:0;transform:translateY(20px);animation:fadeUp 0.9s var(--ease) 0.6s forwards}
+.hero-desc{font-size:0.95rem;color:var(--text2);line-height:1.7;max-width:440px;opacity:0;transform:translateY(20px);animation:fadeUp 0.9s var(--ease) 0.75s forwards}
+
+.cta-btn{display:inline-flex;align-items:center;gap:10px;padding:14px 32px;background:linear-gradient(135deg,#c0392b,#e74c3c,#c0392b);background-size:200% 200%;border:none;border-radius:12px;color:#fff;font-family:var(--font-display);font-size:1rem;font-weight:700;text-decoration:none;cursor:pointer;position:relative;overflow:hidden;width:fit-content;box-shadow:0 0 30px rgba(192,57,43,0.4),0 4px 20px rgba(0,0,0,0.4);transition:box-shadow 0.3s var(--ease),transform 0.3s var(--ease);opacity:0;transform:translateY(20px);animation:fadeUp 0.9s var(--ease) 0.9s forwards,gradShift 3s ease infinite}
+.cta-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(255,255,255,0.1),transparent);transform:translateX(-100%);transition:transform 0.5s var(--ease)}
+.cta-btn:hover::before{transform:translateX(100%)}
+.cta-btn:hover{box-shadow:0 0 50px rgba(231,76,60,0.6),0 8px 30px rgba(0,0,0,0.5);transform:translateY(-3px) scale(1.02) !important}
+.cta-btn svg{transition:transform 0.3s var(--ease)}
+.cta-btn:hover svg{transform:translateX(4px)}
+@keyframes gradShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+
+/* HERO IMAGE */
+.hero-right{display:flex;align-items:center;justify-content:center;position:relative}
+.hero-img-wrap{position:relative;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateX(40px) scale(0.95);animation:imgReveal 1.2s var(--ease) 0.5s forwards}
+@keyframes imgReveal{to{opacity:1;transform:translateX(0) scale(1)}}
+.hero-img-glow{position:absolute;width:80%;height:80%;border-radius:50%;background:radial-gradient(circle,rgba(192,57,43,0.3),transparent 70%);filter:blur(40px);animation:glowPulse 4s ease-in-out infinite alternate;pointer-events:none}
+@keyframes glowPulse{0%{transform:scale(0.9);opacity:0.6}100%{transform:scale(1.1);opacity:1}}
+.hero-img-wrap img{width:100%;max-width:480px;height:auto;object-fit:contain;position:relative;z-index:1;animation:floatImg 6s ease-in-out infinite;filter:drop-shadow(0 20px 60px rgba(192,57,43,0.4)) drop-shadow(0 0 30px rgba(255,107,107,0.2));border-radius:24px}
+@keyframes floatImg{0%,100%{transform:translateY(0) rotate(0deg)}33%{transform:translateY(-12px) rotate(0.5deg)}66%{transform:translateY(-6px) rotate(-0.5deg)}}
+
+/* SECTIONS */
+section{position:relative;z-index:1}
+
+/* FEATURES */
+.features{padding:80px 64px;max-width:1400px;margin:0 auto}
+.section-header{text-align:center;margin-bottom:48px}
+.section-tag{display:inline-block;font-size:0.68rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:var(--red3);margin-bottom:12px}
+.section-title{font-family:var(--font-display);font-size:clamp(2rem,4vw,3rem);font-weight:800;letter-spacing:-0.03em;line-height:1.1;color:var(--text)}
+.section-title em{font-style:normal;background:linear-gradient(135deg,#ff6b6b,#c0392b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{background:var(--glass);border:1px solid var(--border);border-radius:20px;padding:28px 24px;position:relative;overflow:hidden;cursor:default;transition:border-color 0.4s var(--ease),transform 0.4s var(--ease),box-shadow 0.4s var(--ease);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,100,100,0.06),transparent,rgba(192,57,43,0.04));opacity:0;transition:opacity 0.4s var(--ease)}
+.card::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,150,150,0.06),transparent);transition:left 0.6s var(--ease)}
+.card:hover{border-color:var(--border2);transform:translateY(-6px);box-shadow:0 20px 60px rgba(192,57,43,0.15),0 0 30px rgba(192,57,43,0.08)}
+.card:hover::before{opacity:1}
+.card:hover::after{left:100%}
+.card-icon{width:48px;height:48px;margin-bottom:16px;position:relative}
+.card-icon svg{width:100%;height:100%;transition:filter 0.3s var(--ease)}
+.card:hover .card-icon svg{filter:drop-shadow(0 0 8px rgba(255,107,107,0.6))}
+.card-title{font-family:var(--font-display);font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:8px;letter-spacing:-0.01em}
+.card-desc{font-size:0.85rem;color:var(--text2);line-height:1.6}
+
+/* animate-in class for scroll */
+.anim-el{opacity:0;transform:translateY(36px) scale(0.97);transition:opacity 0.7s var(--ease),transform 0.7s var(--ease)}
+.anim-el.visible{opacity:1;transform:translateY(0) scale(1)}
+
+/* WHY CHOOSE */
+.why{padding:72px 64px;max-width:1400px;margin:0 auto}
+.why-blocks{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.why-block{background:linear-gradient(135deg,rgba(192,57,43,0.1),rgba(180,20,20,0.06));border:1px solid var(--border);border-radius:20px;padding:32px 28px;position:relative;overflow:hidden;transition:transform 0.5s var(--ease),box-shadow 0.5s var(--ease)}
+.why-block::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--red2),transparent);opacity:0;transition:opacity 0.4s}
+.why-block:hover{transform:translateY(-4px);box-shadow:0 16px 48px rgba(192,57,43,0.12)}
+.why-block:hover::before{opacity:1}
+.why-num{font-family:var(--font-display);font-size:3rem;font-weight:800;color:rgba(192,57,43,0.2);line-height:1;margin-bottom:12px;letter-spacing:-0.04em}
+.why-title{font-family:var(--font-display);font-size:1.15rem;font-weight:700;color:var(--text);margin-bottom:8px;letter-spacing:-0.02em}
+.why-desc{font-size:0.85rem;color:var(--text2);line-height:1.65}
+
+/* HOW IT WORKS */
+.how{padding:72px 64px;max-width:1400px;margin:0 auto}
+.how-steps{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:16px;margin-top:48px}
+.step{text-align:center;position:relative}
+.step-num{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,rgba(192,57,43,0.2),rgba(180,20,20,0.1));border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-family:var(--font-display);font-size:1.3rem;font-weight:800;color:var(--red3);position:relative;overflow:hidden;transition:transform 0.4s var(--ease),box-shadow 0.4s var(--ease)}
+.step-num::before{content:'';position:absolute;inset:-2px;border-radius:50%;background:linear-gradient(135deg,var(--red2),transparent,var(--red3));opacity:0;transition:opacity 0.4s;z-index:0}
+.step:hover .step-num{transform:scale(1.1);box-shadow:0 0 30px rgba(192,57,43,0.3)}
+.step-title{font-family:var(--font-display);font-size:1rem;font-weight:700;color:var(--text);margin-bottom:6px;letter-spacing:-0.01em}
+.step-desc{font-size:0.82rem;color:var(--text2);line-height:1.5}
+.connector{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:60px}
+.connector-line{width:100%;height:2px;background:var(--border);border-radius:2px;position:relative;overflow:hidden}
+.connector-fill{position:absolute;top:0;left:0;height:100%;width:0%;background:linear-gradient(90deg,var(--red2),var(--red3));border-radius:2px;transition:width 1s var(--ease2)}
+.how.visible .connector-fill{width:100%}
+
+/* FINAL CTA */
+.final-cta{padding:72px 64px;max-width:1400px;margin:0 auto}
+.cta-glass{background:linear-gradient(135deg,rgba(192,57,43,0.12),rgba(180,20,20,0.08),rgba(192,57,43,0.12));border:1px solid var(--border2);border-radius:28px;padding:56px 48px;text-align:center;position:relative;overflow:hidden;box-shadow:0 0 80px rgba(192,57,43,0.08)}
+.cta-glass::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,100,100,0.04),transparent,rgba(255,100,100,0.04));pointer-events:none}
+.cta-glass::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:conic-gradient(from 0deg,transparent,rgba(192,57,43,0.06),transparent,rgba(231,76,60,0.06),transparent);animation:rotateConic 12s linear infinite;pointer-events:none}
+@keyframes rotateConic{to{transform:rotate(360deg)}}
+.cta-glass-inner{position:relative;z-index:1}
+.cta-title{font-family:var(--font-display);font-size:clamp(2rem,4vw,3.2rem);font-weight:800;letter-spacing:-0.04em;line-height:1.1;margin-bottom:12px;background:linear-gradient(135deg,#fff,#ffb3b3,#c0392b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.cta-sub{font-size:0.95rem;color:var(--text2);margin-bottom:32px;line-height:1.6}
+
+/* FOOTER */
+footer{text-align:center;padding:24px 32px;border-top:1px solid var(--border);position:relative;z-index:1}
+footer p{font-size:0.8rem;color:var(--text3)}
+
+/* SCROLL ANIMATIONS */
+.stagger-1{transition-delay:0.05s}
+.stagger-2{transition-delay:0.12s}
+.stagger-3{transition-delay:0.19s}
+.stagger-4{transition-delay:0.26s}
+.stagger-5{transition-delay:0.33s}
+.stagger-6{transition-delay:0.4s}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .hero{grid-template-columns:1fr 1fr;gap:24px;padding:32px 32px}
+  .hero-brand{font-size:clamp(2.5rem,6vw,4rem)}
+  .cards-grid{grid-template-columns:repeat(2,1fr)}
+  .features,.why,.how,.final-cta{padding:56px 32px}
+  .why-blocks{grid-template-columns:repeat(3,1fr);gap:12px}
+  .how-steps{gap:8px}
+  .connector{width:30px}
+}
+@media(max-width:600px){
+  .hero{padding:24px 20px;gap:16px}
+  .hero-brand{font-size:clamp(2rem,8vw,3.2rem)}
+  .hero-desc{font-size:0.85rem}
+  .hero-img-wrap img{max-width:100%}
+  .features,.why,.how,.final-cta{padding:48px 20px}
+  .cards-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .card{padding:20px 16px}
+  .why-blocks{grid-template-columns:repeat(3,1fr);gap:8px}
+  .why-block{padding:20px 14px}
+  .how-steps{gap:6px}
+  .connector{width:24px}
+  .step-num{width:48px;height:48px;font-size:1rem}
+  .cta-glass{padding:40px 24px}
+}
+</style>
+</head>
+<body>
+<div class="ambient">
+  <div class="amb-orb"></div>
+  <div class="amb-orb"></div>
+  <div class="amb-orb"></div>
+</div>
+
+<nav>
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-icon">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="9" fill="url(#lg1)"/>
+        <circle cx="16" cy="16" r="6" stroke="white" stroke-width="2.2" fill="none"/>
+        <circle cx="22.5" cy="9.5" r="1.5" fill="white"/>
+        <defs><linearGradient id="lg1" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse"><stop stop-color="#c0392b"/><stop offset="1" stop-color="#7b0d0d"/></linearGradient></defs>
+      </svg>
+    </div>
+    <span class="nav-logo-text">InstaX</span>
+  </a>
+</nav>
+
+<main>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-left">
+      <span class="hero-label">WELCOME TO InstaX</span>
+      <div class="hero-brand">
+        <span class="brand-insta">Insta</span>
+        <span class="brand-x">X</span>
+      </div>
+      <h1 class="hero-headline">Download Instagram<br>Reels &amp; Posts Instantly</h1>
+      <p class="hero-desc">The fastest, cleanest way to save Instagram videos, reels, and photos — no login, no hassle, no limits. Professional quality downloads in seconds.</p>
+      <a href="app.html" class="cta-btn" id="heroCta">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Start Downloading
+      </a>
+    </div>
+    <div class="hero-right">
+      <div class="hero-img-wrap">
+        <div class="hero-img-glow"></div>
+        <img src="somu.png" alt="InstaX App Preview" loading="eager">
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <div class="section-header anim-el">
+      <div class="section-tag">Features</div>
+      <h2 class="section-title">Everything You <em>Need</em></h2>
+    </div>
+    <div class="cards-grid">
+      <!-- Card 1 -->
+      <div class="card anim-el stagger-1">
+        <div class="card-icon">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="24" cy="24" r="22" stroke="#e74c3c" stroke-width="2" opacity="0.3"/>
+            <path d="M24 6 L28 20 L42 20 L30 29 L34 43 L24 33 L14 43 L18 29 L6 20 L20 20 Z" fill="url(#f1)" opacity="0.9"/>
+            <defs><linearGradient id="f1" x1="6" y1="6" x2="42" y2="42" gradientUnits="userSpaceOnUse"><stop stop-color="#ff6b6b"/><stop offset="1" stop-color="#c0392b"/></linearGradient></defs>
+          </svg>
+        </div>
+        <div class="card-title">Fast Download</div>
+        <div class="card-desc">Lightning-fast servers ensure your content arrives in milliseconds, not seconds.</div>
+      </div>
+      <!-- Card 2 -->
+      <div class="card anim-el stagger-2">
+        <div class="card-icon">
+          <svg viewBox="0 0 48 48" fill="none">
+            <rect x="4" y="10" width="40" height="28" rx="4" stroke="#e74c3c" stroke-width="2" opacity="0.4"/>
+            <rect x="10" y="16" width="28" height="16" rx="2" fill="url(#f2)" opacity="0.8"/>
+            <line x1="20" y1="38" x2="28" y2="38" stroke="#e74c3c" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="24" y1="38" x2="24" y2="42" stroke="#e74c3c" stroke-width="2.5" stroke-linecap="round"/>
+            <defs><linearGradient id="f2" x1="10" y1="16" x2="38" y2="32"><stop stop-color="#ff6b6b"/><stop offset="1" stop-color="#7b0d0d"/></linearGradient></defs>
+          </svg>
+        </div>
+        <div class="card-title">HD Quality</div>
+        <div class="card-desc">Download in the original quality — 1080p, 4K. We never compress your media.</div>
+      </div>
+      <!-- Card 3 -->
+      <div class="card anim-el stagger-3">
+        <div class="card-icon">
+          <svg viewBox="0 0 48 48" fill="none">
+            <rect x="10" y="22" width="28" height="22" rx="4" stroke="#e74c3c" stroke-width="2" fill="rgba(192,57,43,0.1)"/>
+            <path d="M16 22V16a8 8 0 0116 0v6" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+            <circle cx="24" cy="33" r="3" fill="url(#f3)"/>
+            <line x1="24" y1="36" x2="24" y2="40" stroke="url(#f3)" stroke-width="2" stroke-linecap="round"/>
+            <defs><linearGradient id="f3" x1="21" y1="30" x2="27" y2="40"><stop stop-color="#ff6b6b"/><stop offset="1" stop-color="#c0392b"/></linearGradient></defs>
+          </svg>
+        </div>
+        <div class="card-title">No Login Required</div>
+        <div class="card-desc">Zero accounts. Zero passwords. Just paste the link and download.</div>
+      </div>
+      <!-- Card 4 -->
+      <div class="card anim-el stagger-4">
+        <div class="card-icon">
+          <svg viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="18" fill="url(#f4)" opacity="0.15"/>
+            <path d="M12 24h24M24 12v24" stroke="url(#f4)" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M16 16L32 32M32 16L16 32" stroke="url(#f4)" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+            <circle cx="24" cy="24" r="4" fill="url(#f4)"/>
+            <defs><linearGradient id="f4" x1="12" y1="12" x2="36" y2="36"><stop stop-color="#ff6b6b"/><stop offset="1" stop-color="#c0392b"/></linearGradient></defs>
+          </svg>
+        </div>
+        <div class="card-title">100% Free</div>
+        <div class="card-desc">No subscriptions. No hidden fees. Always free, always premium.</div>
+      </div>
+      <!-- Card 5 -->
+      <div class="card anim-el stagger-5">
+        <div class="card-icon">
+          <svg viewBox="0 0 48 48" fill="none">
+            <path d="M24 6L10 12v12c0 9 6 17 14 20 8-3 14-11 14-20V12L24 6z" stroke="#e74c3c" stroke-width="2" fill="rgba(192,57,43,0.1)"/>
+            <path d="M17 24l5 5 9-9" stroke="url(#f5)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs><linearGradient id="f5" x1="17" y1="20" x2="31" y2="32"><stop stop-color="#ff6b6b"/><stop offset="1" stop-color="#c0392b"/></linearGradient></defs>
+          </svg>
+        </div>
+        <div class="card-title">Secure</div>
+        <div class="card-desc">Your data stays yours. We don't store, log, or share any of your links.</div>
+      </div>
+      <!-- Card 6 -->
+      <div class="card anim-el stagger-6">
+        <div class="card-icon">
+          <svg viewBox="0 0 48 48" fill="none">
+            <rect x="6" y="14" width="36" height="6" rx="3" fill="url(#f6)" opacity="0.8"/>
+            <rect x="6" y="24" width="28" height="6" rx="3" fill="url(#f6)" opacity="0.6"/>
+            <rect x="6" y="34" width="36" height="6" rx="3" fill="url(#f6)" opacity="0.4"/>
+            <defs><linearGradient id="f6" x1="6" y1="14" x2="42" y2="40"><stop stop-color="#ff6b6b"/><stop offset="1" stop-color="#c0392b"/></linearGradient></defs>
+          </svg>
+        </div>
+        <div class="card-title">Unlimited Downloads</div>
+        <div class="card-desc">No daily caps. Download as many reels and posts as you want, whenever you want.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY CHOOSE -->
+  <section class="why">
+    <div class="section-header anim-el">
+      <div class="section-tag">Why InstaX</div>
+      <h2 class="section-title">Built for <em>Speed</em></h2>
+    </div>
+    <div class="why-blocks">
+      <div class="why-block anim-el stagger-1">
+        <div class="why-num">01</div>
+        <div class="why-title">Lightning Speed</div>
+        <div class="why-desc">Our CDN-backed infrastructure processes requests globally in under 500ms. Your downloads start before you blink.</div>
+      </div>
+      <div class="why-block anim-el stagger-2">
+        <div class="why-num">02</div>
+        <div class="why-title">Zero Ads</div>
+        <div class="why-desc">No pop-ups. No redirects. No tracker ads. Just a clean interface that respects your time and attention.</div>
+      </div>
+      <div class="why-block anim-el stagger-3">
+        <div class="why-num">03</div>
+        <div class="why-title">Clean UI</div>
+        <div class="why-desc">Designed by obsessives who hate clutter. Every pixel earns its place. Paste. Download. Done.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how" id="howSection">
+    <div class="section-header anim-el">
+      <div class="section-tag">Process</div>
+      <h2 class="section-title">How It <em>Works</em></h2>
+    </div>
+    <div class="how-steps">
+      <div class="step anim-el stagger-1">
+        <div class="step-num">1</div>
+        <div class="step-title">Copy Link</div>
+        <div class="step-desc">Open Instagram, tap share on any reel or post, copy the link.</div>
+      </div>
+      <div class="connector anim-el stagger-2"><div class="connector-line"><div class="connector-fill" id="fill1"></div></div></div>
+      <div class="step anim-el stagger-3">
+        <div class="step-num">2</div>
+        <div class="step-title">Paste Link</div>
+        <div class="step-desc">Paste it into the InstaX tool and hit Fetch.</div>
+      </div>
+      <div class="connector anim-el stagger-4"><div class="connector-line"><div class="connector-fill" id="fill2"></div></div></div>
+      <div class="step anim-el stagger-5">
+        <div class="step-num">3</div>
+        <div class="step-title">Download</div>
+        <div class="step-desc">Preview your media and tap download. It's yours instantly.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="final-cta">
+    <div class="cta-glass anim-el">
+      <div class="cta-glass-inner">
+        <h2 class="cta-title">Start Downloading Now</h2>
+        <p class="cta-sub">Join thousands saving Instagram content with InstaX every day.</p>
+        <a href="app.html" class="cta-btn" style="margin:0 auto;opacity:1;transform:none;animation:gradShift 3s ease infinite">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Open Downloader
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>InstaX &copy; 2025. Built with obsession. Not affiliated with Instagram or Meta.</p>
+  </footer>
+</main>
+
+<script>
+// MAGNETIC BUTTON
+const magnetBtns = document.querySelectorAll('.cta-btn');
+magnetBtns.forEach(btn => {
+  btn.addEventListener('mousemove', e => {
+    const r = btn.getBoundingClientRect();
+    const x = e.clientX - r.left - r.width/2;
+    const y = e.clientY - r.top - r.height/2;
+    btn.style.transform = `translateY(-3px) scale(1.02) translate(${x*0.12}px,${y*0.12}px)`;
+  });
+  btn.addEventListener('mouseleave', () => {
+    btn.style.transform = '';
+  });
+});
+
+// INTERSECTION OBSERVER
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting){
+      entry.target.classList.add('visible');
+    } else {
+      entry.target.classList.remove('visible');
+    }
+  });
+}, {threshold: 0.12, rootMargin:'0px 0px -40px 0px'});
+
+document.querySelectorAll('.anim-el').forEach(el => io.observe(el));
+
+// HOW SECTION CONNECTOR
+const howSection = document.getElementById('howSection');
+const howIo = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    const fills = document.querySelectorAll('.connector-fill');
+    if(e.isIntersecting){
+      fills.forEach((f,i)=>{ setTimeout(()=>{f.style.width='100%'},300+i*200) });
+      howSection.classList.add('visible');
+    } else {
+      fills.forEach(f=>{ f.style.width='0%' });
+    }
+  });
+},{threshold:0.3});
+howIo.observe(howSection);
+
+// PARALLAX
+let ticking = false;
+window.addEventListener('scroll',()=>{
+  if(!ticking){
+    requestAnimationFrame(()=>{
+      const sy = window.scrollY;
+      const orbs = document.querySelectorAll('.amb-orb');
+      orbs.forEach((o,i)=>{
+        const speed = [0.04,0.06,0.03][i];
+        o.style.transform = `translateY(${sy*speed}px)`;
+      });
+      ticking = false;
+    });
+    ticking = true;
+  }
+});
+</script>
+</body>
+</html>
